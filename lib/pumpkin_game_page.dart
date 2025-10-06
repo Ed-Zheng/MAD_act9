@@ -2,16 +2,18 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'next_page.dart';
 
-class PickPumpkinPage extends StatefulWidget {
-  const PickPumpkinPage({Key? key}) : super(key: key);
+class PumpkinGamePage extends StatefulWidget {
+  final int level; // Level number
+
+  const PumpkinGamePage({Key? key, this.level = 1}) : super(key: key);
 
   @override
-  State<PickPumpkinPage> createState() => _PickPumpkinPageState();
+  State<PumpkinGamePage> createState() => _PumpkinGamePageState();
 }
 
-class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProviderStateMixin {
+class _PumpkinGamePageState extends State<PumpkinGamePage>
+    with SingleTickerProviderStateMixin {
   final AudioPlayer _player = AudioPlayer();
   late int correctIndex;
   bool _showJumpScare = false;
@@ -24,21 +26,30 @@ class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProv
   late List<Offset> shakeOffsets;
   late double centerX, centerY;
   late AnimationController _controller;
-
-  final int pumpkinCount = 3; // 3 pumpkins
   final Random _rand = Random();
-  final double pumpkinWidth = 100;
-  final double pumpkinHeight = 100;
+
+  double get pumpkinWidth => max(100 - widget.level * 5, 50); // smaller each level
+  double get pumpkinHeight => pumpkinWidth;
+
+  int get pumpkinCount => min(2 + widget.level, 5); // Max pumpkins = 5
+
+  bool get isWinLevel => widget.level > 5; // Level 6 → Win Screen
 
   @override
   void initState() {
     super.initState();
-    correctIndex = _rand.nextInt(pumpkinCount);
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat();
-    _playBackgroundMusic();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _generatePumpkinPositions();
-    });
+    _controller = AnimationController(
+        vsync: this,
+        duration: Duration(seconds: max(20 - widget.level * 2, 8))) // faster each level
+      ..repeat();
+
+    if (!isWinLevel) {
+      correctIndex = _rand.nextInt(pumpkinCount);
+      _playBackgroundMusic();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _generatePumpkinPositions();
+      });
+    }
   }
 
   Future<void> _playBackgroundMusic() async {
@@ -51,9 +62,11 @@ class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProv
     final maxRadiusY = MediaQuery.of(context).size.height / 2 - pumpkinHeight / 2;
     final maxRadius = min(maxRadiusX, maxRadiusY);
 
-    radii = List.generate(pumpkinCount, (index) => 50 + _rand.nextDouble() * (maxRadius - 50));
+    radii = List.generate(
+        pumpkinCount, (index) => 50 + _rand.nextDouble() * (maxRadius - 50));
 
-    angles = List.generate(pumpkinCount, (index) => (2 * pi / pumpkinCount) * index);
+    angles = List.generate(
+        pumpkinCount, (index) => (2 * pi / pumpkinCount) * index);
 
     shakeOffsets = List.generate(pumpkinCount, (_) => Offset.zero);
   }
@@ -110,6 +123,21 @@ class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProv
     });
   }
 
+  void _nextLevel() {
+    if (isWinLevel) {
+      // Restart the game
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (_) => const PumpkinGamePage(level: 1)));
+    } else {
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (_) => PumpkinGamePage(level: widget.level + 1)));
+    }
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -119,6 +147,38 @@ class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    if (isWinLevel) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                '🎉 You Win! 🎉',
+                style: TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange),
+              ),
+              const SizedBox(height: 50),
+              ElevatedButton(
+                onPressed: _nextLevel,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  textStyle: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                child: const Text('Play Again'),
+              )
+            ],
+          ),
+        ),
+      );
+    }
+
     centerX = MediaQuery.of(context).size.width / 2 - pumpkinWidth / 2;
     centerY = MediaQuery.of(context).size.height / 2 - pumpkinHeight / 2;
 
@@ -126,38 +186,39 @@ class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProv
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background
           Positioned.fill(
             child: Image.asset(
               'assets/images/background.png',
               fit: BoxFit.cover,
             ),
           ),
-
-          // Title
           Align(
             alignment: const Alignment(0, -0.85),
             child: Text(
-              '🎃 Pick the Pumpkin 🎃',
+              '🎃 Level ${widget.level} 🎃',
               style: TextStyle(
                 color: Colors.orangeAccent.shade100,
                 fontSize: 30,
                 fontWeight: FontWeight.bold,
                 shadows: const [
-                  Shadow(blurRadius: 10, color: Colors.deepOrange, offset: Offset(2, 2)),
+                  Shadow(
+                      blurRadius: 10,
+                      color: Colors.deepOrange,
+                      offset: Offset(2, 2)),
                 ],
               ),
             ),
           ),
-
-          // Pumpkins
           ...List.generate(pumpkinCount, (index) {
             return AnimatedBuilder(
               animation: _controller,
               builder: (context, child) {
-                final double angle = angles[index] + _controller.value * 2 * pi;
-                final double x = centerX + radii[index] * cos(angle) + shakeOffsets[index].dx;
-                final double y = centerY + radii[index] * sin(angle) + shakeOffsets[index].dy;
+                final double angle =
+                    angles[index] + _controller.value * 2 * pi;
+                final double x =
+                    centerX + radii[index] * cos(angle) + shakeOffsets[index].dx;
+                final double y =
+                    centerY + radii[index] * sin(angle) + shakeOffsets[index].dy;
 
                 return Positioned(
                   left: x,
@@ -173,8 +234,6 @@ class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProv
               },
             );
           }),
-
-          // Correct image overlay with Next button
           if (_showCorrectImage)
             Positioned.fill(
               child: Container(
@@ -195,18 +254,16 @@ class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProv
                         right: 0,
                         child: Center(
                           child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const NextPage()),
-                              );
-                            },
+                            onPressed: _nextLevel,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green,
-                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                              textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 40, vertical: 15),
+                              textStyle: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
-                            child: const Text('Next'),
+                            child: Text(
+                                isWinLevel ? 'Play Again' : 'Next Level'),
                           ),
                         ),
                       ),
@@ -214,8 +271,6 @@ class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProv
                 ),
               ),
             ),
-
-          // Jump scare overlay with Try Again button
           if (_showJumpScare)
             Positioned.fill(
               child: Container(
@@ -239,8 +294,10 @@ class _PickPumpkinPageState extends State<PickPumpkinPage> with SingleTickerProv
                             onPressed: _tryAgain,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.orange,
-                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                              textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 40, vertical: 15),
+                              textStyle: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
                             ),
                             child: const Text('Try Again'),
                           ),

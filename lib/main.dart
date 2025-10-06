@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'pumpkin_pick.dart';
+import 'pumpkin_game_page.dart';
 
 void main() {
-  runApp(HalloweenStorybookApp());
+  runApp(const MyApp());
 }
 
-class HalloweenStorybookApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Halloween Storybook',
-      theme: ThemeData.dark(),
-      home: PickPumpkinPage(),
+      debugShowCheckedModeBanner: false,
+      title: 'Pumpkin Game',
+      home: const PumpkinGamePage(), // starts at level 1
     );
   }
 }
