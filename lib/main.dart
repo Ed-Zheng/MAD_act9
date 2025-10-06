@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'pick_pumpkin_page.dart';
+import 'pumpkin_pick.dart';
 
 void main() {
   runApp(HalloweenStorybookApp());
