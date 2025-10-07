@@ -62,6 +62,10 @@ flutter:
     - assets/images/pumpkin.png
     - assets/images/correct.png
     - assets/images/ghost.png
+    - assets/images/bats.png
+    - assets/images/spider.png
+    - assets/images/witch.png
+    - assets/images/skeleton.png
 
     - assets/audios/background_music.mp3
     - assets/audios/success.mp3
