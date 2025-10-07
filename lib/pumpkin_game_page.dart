@@ -53,7 +53,7 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
   }
 
   Future<void> _playBackgroundMusic() async {
-    await _player.play(AssetSource('audio/spooky_bgm.mp3'));
+    await _player.play(AssetSource('assets/audios/background_music.mp3'));
     _player.setReleaseMode(ReleaseMode.loop);
   }
 
@@ -105,13 +105,13 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
         _showNextButton = true;
       });
       await _player.stop();
-      await _player.play(AssetSource('audio/success.mp3'));
+      await _player.play(AssetSource('assets/audios/success.mp3'));
     } else {
       setState(() {
         _showJumpScare = true;
         _showTryAgainButton = true;
       });
-      await _player.play(AssetSource('audio/jump_scare.mp3'));
+      await _player.play(AssetSource('assets/audios/ghost.mp3'));
     }
   }
 

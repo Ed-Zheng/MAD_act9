@@ -58,12 +58,21 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets: 
-    - assets/images/ 
-    - assets/audio/ 
+    - assets/images/background.png
+    - assets/images/pumpkin.png
+    - assets/images/correct.png
+    - assets/images/ghost.png
+
+    - assets/audios/background_music.mp3
+    - assets/audios/success.mp3
+    - assets/audios/ghost.mp3
+    - assets/audios/bats.mp3
+    - assets/audios/spider.mp3
+    - assets/audios/witch.mp3
+    - assets/audios/skeleton.mp3
 
   # To add assets to your application, add an assets section, like this:
-  assets:
-    - assets/audios/background_music.mp3
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
