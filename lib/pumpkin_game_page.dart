@@ -42,11 +42,11 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
   ];
 
   final List<String> _scareSounds = [
-    'assets/audios/ghost.mp3',
-    'assets/audios/witch.mp3',
-    'assets/audios/spider.mp3',
-    'assets/audios/bats.mp3',
-    'assets/audios/skeleton.mp3',
+    'audios/ghost.mp3',
+    'audios/witch.mp3',
+    'audios/spider.mp3',
+    'audios/bats.mp3',
+    'audios/skeleton.mp3',
   ];
 
   int? _currentScareIndex;
@@ -61,6 +61,7 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
 
     if (!isWinLevel) {
       correctIndex = _rand.nextInt(pumpkinCount);
+      _player.setVolume(1.0);
       _playBackgroundMusic();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _generatePumpkinPositions();
@@ -69,7 +70,7 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
   }
 
   Future<void> _playBackgroundMusic() async {
-    await _player.play(AssetSource('assets/audios/background_music.mp3'));
+    await _player.play(AssetSource('audios/background_music.mp3'));
     _player.setReleaseMode(ReleaseMode.loop);
   }
 
@@ -121,7 +122,8 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
         _showNextButton = true;
       });
       await _player.stop();
-      await _player.play(AssetSource('assets/audios/success.mp3'));
+      await Future.delayed(const Duration(milliseconds: 100));
+      await _player.play(AssetSource('audios/success.mp3'));
     } else {
       _currentScareIndex = _rand.nextInt(_scareImages.length);
       setState(() {
@@ -129,6 +131,7 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
         _showTryAgainButton = true;
       });
       await _player.stop();
+      await Future.delayed(const Duration(milliseconds: 100));
       await _player.play(AssetSource(_scareSounds[_currentScareIndex!]));
     }
   }
@@ -143,16 +146,15 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
 
   void _nextLevel() {
     if (isWinLevel) {
-      // Restart the game
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (_) => const PumpkinGamePage(level: 1)));
+        context,
+        MaterialPageRoute(builder: (_) => const PumpkinGamePage(level: 1)),
+      );
     } else {
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (_) => PumpkinGamePage(level: widget.level + 1)));
+        context,
+        MaterialPageRoute(builder: (_) => PumpkinGamePage(level: widget.level + 1)),
+      );
     }
   }
 
