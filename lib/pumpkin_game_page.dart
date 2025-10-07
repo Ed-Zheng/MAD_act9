@@ -30,10 +30,26 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
 
   double get pumpkinWidth => max(100 - widget.level * 5, 50); // smaller each level
   double get pumpkinHeight => pumpkinWidth;
-
   int get pumpkinCount => min(2 + widget.level, 5); // Max pumpkins = 5
-
   bool get isWinLevel => widget.level > 5; // Level 6 → Win Screen
+
+  final List<String> _scareImages = [
+    'assets/images/ghost.png',
+    'assets/images/witch.png',
+    'assets/images/spider.png',
+    'assets/images/bats.png',
+    'assets/images/skeleton.png',
+  ];
+
+  final List<String> _scareSounds = [
+    'assets/audios/ghost.mp3',
+    'assets/audios/witch.mp3',
+    'assets/audios/spider.mp3',
+    'assets/audios/bats.mp3',
+    'assets/audios/skeleton.mp3',
+  ];
+
+  int? _currentScareIndex;
 
   @override
   void initState() {
@@ -107,11 +123,13 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
       await _player.stop();
       await _player.play(AssetSource('assets/audios/success.mp3'));
     } else {
+      _currentScareIndex = _rand.nextInt(_scareImages.length);
       setState(() {
         _showJumpScare = true;
         _showTryAgainButton = true;
       });
-      await _player.play(AssetSource('assets/audios/ghost.mp3'));
+      await _player.stop();
+      await _player.play(AssetSource(_scareSounds[_currentScareIndex!]));
     }
   }
 
@@ -279,7 +297,9 @@ class _PumpkinGamePageState extends State<PumpkinGamePage>
                   children: [
                     Center(
                       child: Image.asset(
-                        'assets/images/ghost.png',
+                        _currentScareIndex != null
+                            ? _scareImages[_currentScareIndex!]
+                            : 'assets/images/ghost.png',
                         width: 300,
                         height: 300,
                       ),
